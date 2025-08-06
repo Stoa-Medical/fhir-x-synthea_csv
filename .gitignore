@@ -8,3 +8,19 @@ wheels/
 
 # Virtual environments
 .venv
+
+# SpecStory explanation file
+.specstory/.what-is-this.md
+.specstory/
+.DS_Store
+.cursor/
+.cursor*
+.paic/
+claude/
+.aider*
+diff.txt
+temp.txt
+digest.txt
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/

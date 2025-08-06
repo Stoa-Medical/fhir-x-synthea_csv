@@ -201,7 +201,7 @@ def observation_transform(src: Dict[str, Any]) -> Dict[str, Any]:
         "encounter": create_reference("Encounter", src.get("ENCOUNTER")) if src.get("ENCOUNTER") else None,
         "effectiveDateTime": to_fhir_datetime(src.get("DATE")),
         "issued": to_fhir_datetime(src.get("DATE")),
-        "category": [observation_category_lexicon.forward_get(src.get("TYPE"))] if src.get("TYPE") else None,
+        "category": [observation_category_lexicon.forward_get(src.get("CATEGORY"))] if src.get("CATEGORY") else None,
     }
     
     # Add value element if present

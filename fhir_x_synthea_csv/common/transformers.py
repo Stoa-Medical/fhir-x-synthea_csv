@@ -12,12 +12,22 @@ def parse_synthea_datetime(dt_str: str) -> Optional[datetime]:
     if not dt_str:
         return None
     try:
-        # Synthea uses format: "YYYY-MM-DD HH:MM:SS" or "YYYY-MM-DD"
-        if " " in dt_str:
+        # Try various formats that Synthea might use
+        # ISO 8601 formats first (from FHIR or modern Synthea)
+        if 'T' in dt_str:
+            # Remove timezone info for parsing
+            dt_clean = dt_str.replace('Z', '').split('+')[0].split('-')[0:3]
+            dt_clean = '-'.join(dt_clean[0:3])
+            if len(dt_str.split('T')) > 1:
+                time_part = dt_str.split('T')[1].replace('Z', '').split('+')[0]
+                dt_clean = dt_str.split('T')[0] + 'T' + time_part.split('.')[0]
+            return datetime.fromisoformat(dt_clean)
+        # Traditional Synthea formats
+        elif " " in dt_str:
             return datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
         else:
             return datetime.strptime(dt_str, "%Y-%m-%d")
-    except ValueError:
+    except (ValueError, TypeError):
         return None
 
 

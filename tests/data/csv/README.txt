@@ -1,0 +1,1 @@
+Synthea CSV files should go here! Also see upper-level README.

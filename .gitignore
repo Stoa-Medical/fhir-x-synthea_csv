@@ -11,6 +11,12 @@ wheels/
 
 # SpecStory explanation file
 .specstory/.what-is-this.md
+
+# Test data files
+tests/data/csv/*.csv
+tests/data/fhir/*.json
+
+# Personal
 .specstory/
 .DS_Store
 .cursor/

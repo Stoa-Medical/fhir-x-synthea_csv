@@ -9,3 +9,9 @@ dependencies = [
     "fhir.resources>=8.1.0",
     "synthea-pydantic>=0.1.0"
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.1",
+    "pytest-cov>=6.2.1",
+]

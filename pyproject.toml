@@ -5,7 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "chidian>=0.1.1",
+    "chidian>=0.1.2",
     "fhir.resources>=8.1.0",
     "synthea-pydantic>=0.1.0"
 ]

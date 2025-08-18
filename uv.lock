@@ -12,15 +12,15 @@ wheels = [
 
 [[package]]
 name = "chidian"
-version = "0.1.1"
+version = "0.1.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "parsimonious" },
     { name = "pydantic" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/3a/bc/0aed7c94683278e2b9d47d57c7428da62900fb9cdb880a7e245291b4e5f9/chidian-0.1.1.tar.gz", hash = "sha256:ba83e31311e2fa2d3ba4e560410337cd02aa410bdce855bf25d1392422c1be1e", size = 41346 }
+sdist = { url = "https://files.pythonhosted.org/packages/ae/bc/ff667d7da4446053352783951e7a54e7b34b5223a7c177546e31678cd5e9/chidian-0.1.2.tar.gz", hash = "sha256:806ac80cf13d29f32c5e6db3b7933cbe85cc89dac45ef680b9ed21aff935cc5f", size = 44298 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/6d/60/5f59edfad4abbc3a898bb1a003029433660d7a72ca5611ceb3f05df7f6e5/chidian-0.1.1-py3-none-any.whl", hash = "sha256:9cb6aa29f46e776e1d034b88f774df452f9cc57b1b37a3baaf3de8f2b1563042", size = 27042 },
+    { url = "https://files.pythonhosted.org/packages/9b/c7/ca766c32cd7816ae5343712bdbc7afe2dcbd9801ca4041e2dadd556838b4/chidian-0.1.2-py3-none-any.whl", hash = "sha256:768966906d3d028f1a0b1e67ac312150d695aef065c57fdf025830c667269a68", size = 29948 },
 ]
 
 [[package]]
@@ -139,7 +139,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "chidian", specifier = ">=0.1.1" },
+    { name = "chidian", specifier = ">=0.1.2" },
     { name = "fhir-resources", specifier = ">=8.1.0" },
     { name = "synthea-pydantic", specifier = ">=0.1.0" },
 ]

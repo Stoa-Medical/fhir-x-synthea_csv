@@ -1,13 +1,13 @@
 [project]
 name = "fhir-x-synthea-csv"
 version = "0.1.0"
-description = "Add your description here"
+description = "Bidirectional mapping library between Synthea CSV and FHIR R4B resources"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "chidian>=0.1.2",
     "fhir.resources>=8.1.0",
-    "synthea-pydantic>=0.1.0"
+    "synthea-pydantic>=0.1.0",
 ]
 
 [dependency-groups]

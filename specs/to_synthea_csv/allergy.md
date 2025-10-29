@@ -4,23 +4,27 @@
 - AllergyIntolerance
 
 ## Field Mappings
-| Source Field | Target Field | Transform | Notes |
-|--------------|--------------|-----------|-------|
-| AllergyIntolerance.recordedDate or onsetDateTime | allergies.START | Parse FHIR datetime → Synthea format | Prefer recordedDate; fallback to onsetDateTime |
-| AllergyIntolerance.lastOccurrence | allergies.STOP | Parse FHIR datetime → Synthea format | If absent but clinicalStatus is resolved/inactive, leave empty string |
-| AllergyIntolerance.patient.reference | allergies.PATIENT | Extract reference id | Patient/{id} |
-| AllergyIntolerance.encounter.reference | allergies.ENCOUNTER | Extract reference id | Encounter/{id} |
-| AllergyIntolerance.code.coding (SNOMED/RxNorm) | allergies.CODE | Extract coding.code | Prefer SNOMED or RxNorm; fallback first coding |
-| AllergyIntolerance.code.coding | allergies.SYSTEM | Extract coding.system | Preserved system URL |
-| AllergyIntolerance.code | allergies.DESCRIPTION | Display or text fallback | Human-readable description |
-| AllergyIntolerance.type | allergies.TYPE | Lowercase | allergy|intolerance |
-| AllergyIntolerance.category[0] | allergies.CATEGORY | Normalize | medication/food/environment |
-| AllergyIntolerance.reaction[0].manifestation[0] | allergies.REACTION1 | Extract coding.code (SNOMED) | Optional |
-| AllergyIntolerance.reaction[0].description | allergies.DESCRIPTION1 | Direct copy | Optional |
-| AllergyIntolerance.reaction[0].severity | allergies.SEVERITY1 | Uppercase | MILD|MODERATE|SEVERE |
-| AllergyIntolerance.reaction[1].manifestation[0] | allergies.REACTION2 | Extract coding.code (SNOMED) | Optional |
-| AllergyIntolerance.reaction[1].description | allergies.DESCRIPTION2 | Direct copy | Optional |
-| AllergyIntolerance.reaction[1].severity | allergies.SEVERITY2 | Uppercase | Optional |
+```python
+# FHIR AllergyIntolerance → Synthea CSV allergies mapping
+# (source_field, target_field, semantic_concept, transform, notes)
+allergies_reverse_mapping = [
+    ("AllergyIntolerance.recordedDate or onsetDateTime", "allergies.START", "Date recorded", "Parse FHIR datetime → Synthea format", "Prefer recordedDate; fallback to onsetDateTime"),
+    ("AllergyIntolerance.lastOccurrence", "allergies.STOP", "Last occurrence", "Parse FHIR datetime → Synthea format", "If absent but clinicalStatus is resolved/inactive, leave empty string"),
+    ("AllergyIntolerance.patient.reference", "allergies.PATIENT", "Patient reference", "Extract reference id", "Patient/{id}"),
+    ("AllergyIntolerance.encounter.reference", "allergies.ENCOUNTER", "Encounter reference", "Extract reference id", "Encounter/{id}"),
+    ("AllergyIntolerance.code.coding (SNOMED/RxNorm)", "allergies.CODE", "Allergy code", "Extract coding.code", "Prefer SNOMED or RxNorm; fallback first coding"),
+    ("AllergyIntolerance.code.coding", "allergies.SYSTEM", "Code system", "Extract coding.system", "Preserved system URL"),
+    ("AllergyIntolerance.code", "allergies.DESCRIPTION", "Description", "Display or text fallback", "Human-readable description"),
+    ("AllergyIntolerance.type", "allergies.TYPE", "Type", "Lowercase", "allergy|intolerance"),
+    ("AllergyIntolerance.category[0]", "allergies.CATEGORY", "Category", "Normalize", "medication/food/environment"),
+    ("AllergyIntolerance.reaction[0].manifestation[0]", "allergies.REACTION1", "Reaction 1", "Extract coding.code (SNOMED)", "Optional"),
+    ("AllergyIntolerance.reaction[0].description", "allergies.DESCRIPTION1", "Reaction 1 description", "Direct copy", "Optional"),
+    ("AllergyIntolerance.reaction[0].severity", "allergies.SEVERITY1", "Severity 1", "Uppercase", "MILD|MODERATE|SEVERE"),
+    ("AllergyIntolerance.reaction[1].manifestation[0]", "allergies.REACTION2", "Reaction 2", "Extract coding.code (SNOMED)", "Optional"),
+    ("AllergyIntolerance.reaction[1].description", "allergies.DESCRIPTION2", "Reaction 2 description", "Direct copy", "Optional"),
+    ("AllergyIntolerance.reaction[1].severity", "allergies.SEVERITY2", "Severity 2", "Uppercase", "Optional"),
+]
+```
 
 ## Clinical Status Handling
 - If clinicalStatus indicates resolved/inactive but no `lastOccurrence`, output empty `STOP`.

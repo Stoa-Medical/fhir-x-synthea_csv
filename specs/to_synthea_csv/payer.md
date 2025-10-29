@@ -3,39 +3,32 @@
 This spec defines how a FHIR R4 `Organization` resource representing a payer maps back to a Synthea `payers.csv` row. Aggregate/statistical fields are expected in a custom extension.
 
 ## Field Mappings
-
-| Target Field | Source | Notes |
-|--------------|--------|-------|
-| Id | Organization.id | Required |
-| Name | Organization.name | Required |
-| Ownership | Organization.extension url=`http://synthea.mitre.org/fhir/StructureDefinition/payer-ownership` → valueCode | Optional; if missing, output empty string |
-| Address | Organization.address[0].line[0] | Optional |
-| City | Organization.address[0].city | Optional |
-| State_Headquartered | Organization.address[0].state | Optional |
-| Zip | Organization.address[0].postalCode | Optional |
-| Phone | Organization.telecom where system=`phone` → join values with `; ` | Optional |
-
-## Aggregate Statistics (Custom Extension)
-
-Expect a top-level Organization extension at URL `http://synthea.mitre.org/fhir/StructureDefinition/payer-stats`. If present, extract the following sub-extensions into the corresponding CSV fields. If absent, output empty strings for required numeric fields to preserve CSV schema.
-
-| CSV Field | Sub-extension url | Value |
-|-----------|-------------------|-------|
-| Amount_Covered | amountCovered | valueDecimal (stringified) |
-| Amount_Uncovered | amountUncovered | valueDecimal |
-| Revenue | revenue | valueDecimal |
-| Covered_Encounters | coveredEncounters | valueInteger (string) |
-| Uncovered_Encounters | uncoveredEncounters | valueInteger |
-| Covered_Medications | coveredMedications | valueInteger |
-| Uncovered_Medications | uncoveredMedications | valueInteger |
-| Covered_Procedures | coveredProcedures | valueInteger |
-| Uncovered_Procedures | uncoveredProcedures | valueInteger |
-| Covered_Immunizations | coveredImmunizations | valueInteger |
-| Uncovered_Immunizations | uncoveredImmunizations | valueInteger |
-| Unique_Customers | uniqueCustomers | valueInteger |
-| QOLS_Avg | qolsAvg | valueDecimal |
-| Member_Months | memberMonths | valueInteger |
-
-Values should be stringified without additional formatting. Missing values should be rendered as empty strings.
-
-
+```python
+# FHIR Organization → Synthea CSV payers mapping
+# (source_field, target_field, semantic_concept, transform, notes)
+payers_reverse_mapping = [
+    ("Organization.id", "payers.Id", "Organization Identity", "Direct copy", "Required"),
+    ("Organization.name", "payers.Name", "Payer Name", "Direct copy", "Required"),
+    ("Organization.extension[payer-ownership].valueCode", "payers.Ownership", "Ownership", "Direct copy", "url=http://synthea.mitre.org/fhir/StructureDefinition/payer-ownership; if missing, output empty string"),
+    ("Organization.address[0].line[0]", "payers.Address", "Street Address", "Direct copy", "Optional"),
+    ("Organization.address[0].city", "payers.City", "City", "Direct copy", "Optional"),
+    ("Organization.address[0].state", "payers.State_Headquartered", "State", "Direct copy", "Optional"),
+    ("Organization.address[0].postalCode", "payers.Zip", "Postal Code", "Direct copy", "Optional"),
+    ("Organization.telecom where system=phone", "payers.Phone", "Phone Numbers", "Join values with ; ", "Optional"),
+    ("Organization.extension[payer-stats].extension[amountCovered]", "payers.Amount_Covered", "Amount Covered", "valueDecimal (stringified)", "url=http://synthea.mitre.org/fhir/StructureDefinition/payer-stats"),
+    ("Organization.extension[payer-stats].extension[amountUncovered]", "payers.Amount_Uncovered", "Amount Uncovered", "valueDecimal", ""),
+    ("Organization.extension[payer-stats].extension[revenue]", "payers.Revenue", "Revenue", "valueDecimal", ""),
+    ("Organization.extension[payer-stats].extension[coveredEncounters]", "payers.Covered_Encounters", "Covered Encounters", "valueInteger (string)", ""),
+    ("Organization.extension[payer-stats].extension[uncoveredEncounters]", "payers.Uncovered_Encounters", "Uncovered Encounters", "valueInteger", ""),
+    ("Organization.extension[payer-stats].extension[coveredMedications]", "payers.Covered_Medications", "Covered Medications", "valueInteger", ""),
+    ("Organization.extension[payer-stats].extension[uncoveredMedications]", "payers.Uncovered_Medications", "Uncovered Medications", "valueInteger", ""),
+    ("Organization.extension[payer-stats].extension[coveredProcedures]", "payers.Covered_Procedures", "Covered Procedures", "valueInteger", ""),
+    ("Organization.extension[payer-stats].extension[uncoveredProcedures]", "payers.Uncovered_Procedures", "Uncovered Procedures", "valueInteger", ""),
+    ("Organization.extension[payer-stats].extension[coveredImmunizations]", "payers.Covered_Immunizations", "Covered Immunizations", "valueInteger", ""),
+    ("Organization.extension[payer-stats].extension[uncoveredImmunizations]", "payers.Uncovered_Immunizations", "Uncovered Immunizations", "valueInteger", ""),
+    ("Organization.extension[payer-stats].extension[uniqueCustomers]", "payers.Unique_Customers", "Unique Customers", "valueInteger", ""),
+    ("Organization.extension[payer-stats].extension[qolsAvg]", "payers.QOLS_Avg", "QOLS Average", "valueDecimal", ""),
+    ("Organization.extension[payer-stats].extension[memberMonths]", "payers.Member_Months", "Member Months", "valueInteger", ""),
+]
+# Note: Values should be stringified without additional formatting. Missing values should be rendered as empty strings.
+```

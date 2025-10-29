@@ -4,22 +4,26 @@
 The Observation resource represents measurements and simple assertions about a patient. This mapping transforms Synthea CSV observation data (vital signs, lab results, social history) into FHIR R4 Observation resources.
 
 ## Field Mappings
-| Source Field | Target Field | Semantic Concept | Transform | Semantic Notes |
-|--------------|--------------|------------------|-----------|----------------|
-| observations.DATE | Observation.effectiveDateTime | Observation Date/Time | Format as ISO 8601 | When observation was made |
-| observations.PATIENT | Observation.subject | Patient Reference | Create Reference("Patient/{id}") | Subject of observation |
-| observations.ENCOUNTER | Observation.encounter | Encounter Reference | Create Reference("Encounter/{id}") | Associated encounter |
-| observations.CODE | Observation.code.coding[0].code | LOINC Code | Direct copy | LOINC observation code |
-| observations.DESCRIPTION | Observation.code.coding[0].display | Code Display | Direct copy | Human-readable description |
-| observations.CODE | Observation.code.coding[0].system | Code System | Set to "http://loinc.org" | LOINC system URI |
-| observations.DESCRIPTION | Observation.code.text | Code Text | Direct copy | Fallback text |
-| observations.VALUE | Observation.value[x] | Observation Value | Type-based conversion | Numeric→valueQuantity, Text→valueString |
-| observations.UNITS | Observation.valueQuantity.unit | Value Units | Direct copy | Unit of measure |
-| observations.UNITS | Observation.valueQuantity.code | UCUM Code | Direct copy | UCUM unit code |
-| observations.UNITS | Observation.valueQuantity.system | Unit System | Set to "http://unitsofmeasure.org" | UCUM system |
-| observations.TYPE | Observation.category | Observation Category | Map to category coding | vital-signs, laboratory, social-history, etc. |
-| - | Observation.status | Observation Status | Set to "final" | All CSV observations are final |
-| - | Observation.id | Resource ID | Generate from DATE+PATIENT+CODE | Composite key |
+```python
+# Synthea CSV observations → FHIR Observation mapping
+# (source_field, target_field, semantic_concept, transform, notes)
+observations_mapping = [
+    ("observations.DATE", "Observation.effectiveDateTime", "Observation Date/Time", "Format as ISO 8601", "When observation was made"),
+    ("observations.PATIENT", "Observation.subject", "Patient Reference", "Create Reference(\"Patient/{id}\")", "Subject of observation"),
+    ("observations.ENCOUNTER", "Observation.encounter", "Encounter Reference", "Create Reference(\"Encounter/{id}\")", "Associated encounter"),
+    ("observations.CODE", "Observation.code.coding[0].code", "LOINC Code", "Direct copy", "LOINC observation code"),
+    ("observations.DESCRIPTION", "Observation.code.coding[0].display", "Code Display", "Direct copy", "Human-readable description"),
+    ("observations.CODE", "Observation.code.coding[0].system", "Code System", "Set to \"http://loinc.org\"", "LOINC system URI"),
+    ("observations.DESCRIPTION", "Observation.code.text", "Code Text", "Direct copy", "Fallback text"),
+    ("observations.VALUE", "Observation.value[x]", "Observation Value", "Type-based conversion", "Numeric→valueQuantity, Text→valueString"),
+    ("observations.UNITS", "Observation.valueQuantity.unit", "Value Units", "Direct copy", "Unit of measure"),
+    ("observations.UNITS", "Observation.valueQuantity.code", "UCUM Code", "Direct copy", "UCUM unit code"),
+    ("observations.UNITS", "Observation.valueQuantity.system", "Unit System", "Set to \"http://unitsofmeasure.org\"", "UCUM system"),
+    ("observations.TYPE", "Observation.category", "Observation Category", "Map to category coding", "vital-signs, laboratory, social-history, etc."),
+    (None, "Observation.status", "Observation Status", "Set to \"final\"", "All CSV observations are final"),
+    (None, "Observation.id", "Resource ID", "Generate from DATE+PATIENT+CODE", "Composite key"),
+]
+```
 
 ## Value Type Detection Rules
 - If VALUE is numeric and UNITS present → valueQuantity

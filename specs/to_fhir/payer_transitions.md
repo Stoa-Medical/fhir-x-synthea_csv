@@ -3,22 +3,22 @@
 Maps a Synthea `payer_transitions.csv` row (insurance coverage changes over time) to a FHIR `Coverage` resource. The payer is represented as `Organization`; the beneficiary is the `Patient`.
 
 ## Field Mappings
-
-| Source Field | Target Field | Notes |
-|--------------|--------------|-------|
-| Patient (UUID, req) | Coverage.beneficiary.reference | `Patient/{uuid}` |
-| Member ID (UUID, opt) | Coverage.subscriberId | Alternatively could be an `identifier`, but `subscriberId` suffices |
-| Start_Year (YYYY, req) | Coverage.period.start | Rendered as `YYYY-01-01` (inclusive start) |
-| End_Year (YYYY, req) | Coverage.period.end | Rendered as `YYYY-12-31` (inclusive end) |
-| Payer (UUID, req) | Coverage.payor[0].reference | `Organization/{uuid}` |
-| Secondary Payer (UUID, opt) | Coverage.payor[1].reference | Additional payer reference if present |
-| Ownership (Guardian|Self|Spouse, opt) | Coverage.relationship | Map to `subscriber-relationship` codes: `Self→self`, `Spouse→spouse`; `Guardian` stored as text if no standard code |
-| Owner Name (opt) | Coverage.extension url=`http://synthea.mitre.org/fhir/StructureDefinition/policy-owner-name` valueString | Free-text name of policy owner if not linked to a managed resource |
-
-Additional defaulting:
-
-- Coverage.status: `active` (status is inferred from period; historical coverages may have end dates in the past but we do not set `inactive` here).
-- Coverage.id: deterministic composite `cov-{Patient}-{Start_Year}-{Payer}`.
+```python
+# Synthea CSV payer_transitions → FHIR Coverage mapping
+# (source_field, target_field, semantic_concept, transform, notes)
+payer_transitions_mapping = [
+    ("Patient", "Coverage.beneficiary.reference", "Patient Reference", "Patient/{uuid}", "Required beneficiary"),
+    ("Member ID", "Coverage.subscriberId", "Member ID", "Direct copy", "Alternatively could be an identifier"),
+    ("Start_Year", "Coverage.period.start", "Coverage Start", "Rendered as YYYY-01-01", "Inclusive start of year"),
+    ("End_Year", "Coverage.period.end", "Coverage End", "Rendered as YYYY-12-31", "Inclusive end of year"),
+    ("Payer", "Coverage.payor[0].reference", "Payer Reference", "Organization/{uuid}", "Primary payer"),
+    ("Secondary Payer", "Coverage.payor[1].reference", "Secondary Payer Reference", "Organization/{uuid}", "Additional payer if present"),
+    ("Ownership", "Coverage.relationship", "Subscriber Relationship", "Map to subscriber-relationship codes", "Self→self, Spouse→spouse; Guardian stored as text if no standard code"),
+    ("Owner Name", "Coverage.extension[url=http://synthea.mitre.org/fhir/StructureDefinition/policy-owner-name].valueString", "Owner Name", "Direct copy", "Free-text name of policy owner"),
+    (None, "Coverage.status", "Coverage Status", "Set to active", "Status is inferred from period"),
+    (None, "Coverage.id", "Resource ID", "Generate cov-{Patient}-{Start_Year}-{Payer}", "Deterministic composite"),
+]
+```
 
 ## Semantic Notes
 
@@ -31,5 +31,3 @@ Additional defaulting:
 
 - Owner free-text goes into a dedicated extension to avoid manufacturing unmanaged `Patient`/`RelatedPerson` references.
 - If `Member ID` needs stronger modeling, a `Coverage.identifier` with a local system can be added in a future iteration.
-
-

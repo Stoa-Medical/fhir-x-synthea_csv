@@ -2,39 +2,22 @@
 
 This spec defines how a single row from Synthea `supplies.csv` maps to a FHIR R4 `SupplyDelivery` resource. The CSV records supplies used (fulfilled), which aligns most closely with `SupplyDelivery`.
 
-- **Date (required, Date)**
-  - CSV: `DATE` (YYYY-MM-DD)
-  - FHIR: `occurrenceDateTime`
-  - Transform: date → FHIR dateTime (ISO 8601). If only a date is present, time defaults to 00:00:00+00:00.
-
-- **Patient (required, UUID)**
-  - CSV: `PATIENT`
-  - FHIR: `patient` (Reference(Patient))
-  - Transform: `Patient/{PATIENT}`
-
-- **Encounter (required, UUID)**
-  - CSV: `ENCOUNTER`
-  - FHIR: Extension `http://hl7.org/fhir/StructureDefinition/resource-encounter` with `valueReference` = `Encounter/{ENCOUNTER}`
-  - Rationale: `SupplyDelivery` in R4 does not have an `encounter` element, so the standard Resource Encounter extension is used.
-
-- **Code (required, String; SNOMED-CT)**
-  - CSV: `CODE`
-  - FHIR: `suppliedItem.itemCodeableConcept.coding[0]`
-  - Transform: `system` = `http://snomed.info/sct`, `code` = CSV `CODE`, `display` = CSV `DESCRIPTION`; also set `suppliedItem.itemCodeableConcept.text` = `DESCRIPTION`.
-
-- **Description (required, String)**
-  - CSV: `DESCRIPTION`
-  - FHIR: `suppliedItem.itemCodeableConcept.text` and `coding.display`
-
-- **Quantity (required, Numeric)**
-  - CSV: `QUANTITY`
-  - FHIR: `suppliedItem.quantity.value`
-  - Transform: numeric conversion; no unit is assumed.
-
-- **Additional elements**
-  - `resourceType` = `SupplyDelivery`
-  - `status` = `completed` (since supplies were used/fulfilled)
-  - `id` = deterministic string: `supply-{PATIENT}-{DATE}{time?}-{CODE}` (non-normative, for consistency with other mappers)
+## Field Mappings
+```python
+# Synthea CSV supplies → FHIR SupplyDelivery mapping
+# (source_field, target_field, semantic_concept, transform, notes)
+supplies_mapping = [
+    ("DATE", "SupplyDelivery.occurrenceDateTime", "Date", "date → FHIR dateTime (ISO 8601)", "If only a date is present, time defaults to 00:00:00+00:00"),
+    ("PATIENT", "SupplyDelivery.patient", "Patient", "Patient/{PATIENT}", "Reference(Patient)"),
+    ("ENCOUNTER", "SupplyDelivery.extension[url=http://hl7.org/fhir/StructureDefinition/resource-encounter].valueReference", "Encounter", "Encounter/{ENCOUNTER}", "SupplyDelivery in R4 does not have an encounter element, so the standard Resource Encounter extension is used"),
+    ("CODE", "SupplyDelivery.suppliedItem.itemCodeableConcept.coding[0].code", "Code (SNOMED-CT)", "Direct copy", "system = http://snomed.info/sct"),
+    ("DESCRIPTION", "SupplyDelivery.suppliedItem.itemCodeableConcept.coding[0].display", "Description", "Direct copy", "Also set suppliedItem.itemCodeableConcept.text"),
+    ("DESCRIPTION", "SupplyDelivery.suppliedItem.itemCodeableConcept.text", "Description text", "Direct copy", "Fallback text"),
+    ("QUANTITY", "SupplyDelivery.suppliedItem.quantity.value", "Quantity", "Numeric conversion", "No unit is assumed"),
+    (None, "SupplyDelivery.status", "Status", "Set to completed", "Since supplies were used/fulfilled"),
+    (None, "SupplyDelivery.id", "Resource ID", "Generate supply-{PATIENT}-{DATE}{time?}-{CODE}", "Deterministic string for consistency"),
+]
+```
 
 ### Notes on SupplyRequest
 
@@ -47,5 +30,3 @@ While `supplies.csv` best represents fulfillment (`SupplyDelivery`), the followi
 - Quantity → `SupplyRequest.quantity`
 
 This library’s forward mapper produces `SupplyDelivery` per above.
-
-

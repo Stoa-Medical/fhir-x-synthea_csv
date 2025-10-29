@@ -4,20 +4,24 @@
 The Condition resource represents a clinical condition, problem, or diagnosis. This mapping transforms Synthea CSV condition data into FHIR R4 Condition resources, preserving the clinical semantics of diagnoses and their temporal relationships.
 
 ## Field Mappings
-| Source Field | Target Field | Semantic Concept | Transform | Semantic Notes |
-|--------------|--------------|------------------|-----------|----------------|
-| conditions.START | Condition.onsetDateTime | Onset Date/Time | Format as ISO 8601 | When condition started |
-| conditions.STOP | Condition.abatementDateTime | Abatement Date/Time | Format as ISO 8601 | When condition resolved (if applicable) |
-| conditions.PATIENT | Condition.subject | Patient Reference | Create Reference("Patient/{id}") | Patient with condition |
-| conditions.ENCOUNTER | Condition.encounter | Encounter Reference | Create Reference("Encounter/{id}") | Encounter where diagnosed |
-| conditions.CODE | Condition.code.coding[0].code | SNOMED Code | Direct copy | SNOMED CT code |
-| conditions.DESCRIPTION | Condition.code.coding[0].display | Code Display | Direct copy | Human-readable description |
-| conditions.CODE | Condition.code.coding[0].system | Code System | Set to "http://snomed.info/sct" | SNOMED CT system |
-| conditions.DESCRIPTION | Condition.code.text | Code Text | Direct copy | Fallback text description |
-| - | Condition.clinicalStatus | Clinical Status | Determine from STOP field | active or resolved |
-| - | Condition.verificationStatus | Verification Status | Set to "confirmed" | All CSV conditions are confirmed |
-| - | Condition.category | Condition Category | Set to "encounter-diagnosis" | Default category |
-| - | Condition.id | Resource ID | Generate from PATIENT+START+CODE | Composite key |
+```python
+# Synthea CSV conditions → FHIR Condition mapping
+# (source_field, target_field, semantic_concept, transform, notes)
+conditions_mapping = [
+    ("conditions.START", "Condition.onsetDateTime", "Onset Date/Time", "Format as ISO 8601", "When condition started"),
+    ("conditions.STOP", "Condition.abatementDateTime", "Abatement Date/Time", "Format as ISO 8601", "When condition resolved (if applicable)"),
+    ("conditions.PATIENT", "Condition.subject", "Patient Reference", "Create Reference(\"Patient/{id}\")", "Patient with condition"),
+    ("conditions.ENCOUNTER", "Condition.encounter", "Encounter Reference", "Create Reference(\"Encounter/{id}\")", "Encounter where diagnosed"),
+    ("conditions.CODE", "Condition.code.coding[0].code", "SNOMED Code", "Direct copy", "SNOMED CT code"),
+    ("conditions.DESCRIPTION", "Condition.code.coding[0].display", "Code Display", "Direct copy", "Human-readable description"),
+    ("conditions.CODE", "Condition.code.coding[0].system", "Code System", "Set to \"http://snomed.info/sct\"", "SNOMED CT system"),
+    ("conditions.DESCRIPTION", "Condition.code.text", "Code Text", "Direct copy", "Fallback text description"),
+    (None, "Condition.clinicalStatus", "Clinical Status", "Determine from STOP field", "active or resolved"),
+    (None, "Condition.verificationStatus", "Verification Status", "Set to \"confirmed\"", "All CSV conditions are confirmed"),
+    (None, "Condition.category", "Condition Category", "Set to \"encounter-diagnosis\"", "Default category"),
+    (None, "Condition.id", "Resource ID", "Generate from PATIENT+START+CODE", "Composite key"),
+]
+```
 
 ## Clinical Status Logic
 ```

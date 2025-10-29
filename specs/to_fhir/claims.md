@@ -7,41 +7,30 @@ Assumptions
 - The mapping targets FHIR R4. Elements introduced in R5 (e.g., `Claim.encounter`) are represented using R4-compatible structures (e.g., `Claim.item.encounter`).
 - Codes are preserved in `code` and, when known, expressed with standard systems.
 
-Field mapping
-- Id → Claim.id. Also include a business identifier in Claim.identifier (system `urn:synthea:claim`).
-- Patient ID → Claim.patient = `Patient/{Patient ID}`.
-- Provider ID → Claim.provider = `Practitioner/{Provider ID}`.
-- Primary Patient Insurance ID → Claim.insurance[0]:
-  - sequence = 1, focal = true
-  - coverage = `Coverage/{Primary Patient Insurance ID}`
-- Secondary Patient Insurance ID → Claim.insurance[1]:
-  - sequence = 2, focal = false
-  - coverage = `Coverage/{Secondary Patient Insurance ID}`
-- Department ID, Patient Department ID → No direct standard element; map as top-level Claim.extension entries with URLs:
-  - `http://synthea.tools/StructureDefinition/department-id`
-  - `http://synthea.tools/StructureDefinition/patient-department-id`
-  Each uses `valueString` with the CSV value.
-- Diagnosis1..Diagnosis8 (SNOMED CT codes) → Claim.diagnosis[] entries:
-  - diagnosis.sequence = 1..8 for populated codes in order
-  - diagnosis.diagnosisCodeableConcept.coding[0].system = `http://snomed.info/sct`, code = the DiagnosisN value
-- Referring Provider ID → Ideally Claim.referral = `ServiceRequest/{id}`. Since only a Practitioner ID is given, this cannot be a resolvable reference without an existing ServiceRequest. Omit by default; implementations may introduce a ServiceRequest if available.
-- Appointment ID → Represent in R4 as Claim.item[0].encounter[0] = `Encounter/{Appointment ID}`.
-- Current Illness Date → Claim.event[] entry:
-  - event.type: local CodeableConcept system `http://synthea.tools/CodeSystem/claim-event`, code = `onset`
-  - event.whenDateTime = the date
-  Alternatively, this may be encoded on a referenced Condition.onset[x] in clinical data; this spec uses Claim.event to keep claim-centric fidelity.
-- Service Date → Claim.billablePeriod with start = end = service date.
-- Supervising Provider ID → Claim.careTeam[] entry with:
-  - sequence = 1
-  - provider = `Practitioner/{Supervising Provider ID}`
-  - role.text = `supervising`
-- Status1 (Primary), Status2 (Secondary), StatusP (Patient) → Do not map to Claim.status (which reflects resource lifecycle, e.g., `active`/`cancelled`). These statuses reflect adjudication lifecycle and belong in ClaimResponse. Preserve optionally as Claim.note[].text for traceability.
-- Outstanding1/2/P → Adjudication/financial semantics are in ClaimResponse; do not map to Claim. Preserve optionally as Claim.note[].text for traceability (e.g., `Outstanding1: 123.45`).
-- LastBilledDate1/2/P → Claim.event[] entries with event.type codes `bill-primary`, `bill-secondary`, `bill-patient` and event.whenDateTime set to the respective date.
-- HealthcareClaimTypeID1/2 → Claim.type and Claim.subType:
-  - 1 → `professional`
-  - 2 → `institutional`
-  Use system `http://terminology.hl7.org/CodeSystem/claim-type` for type codes; carry subtype as a textual refinement in Claim.subType (same system when applicable), or omit if not provided.
+## Field Mappings
+```python
+# Synthea CSV claims → FHIR Claim mapping
+# (source_field, target_field, semantic_concept, transform, notes)
+claims_mapping = [
+    ("Id", "Claim.id", "Claim Identity", "Direct copy", "Also include business identifier in Claim.identifier (system urn:synthea:claim)"),
+    ("Patient ID", "Claim.patient", "Patient Reference", "Patient/{Patient ID}", ""),
+    ("Provider ID", "Claim.provider", "Provider Reference", "Practitioner/{Provider ID}", ""),
+    ("Primary Patient Insurance ID", "Claim.insurance[0]", "Primary Insurance", "Coverage/{Primary Patient Insurance ID}", "sequence=1, focal=true"),
+    ("Secondary Patient Insurance ID", "Claim.insurance[1]", "Secondary Insurance", "Coverage/{Secondary Patient Insurance ID}", "sequence=2, focal=false"),
+    ("Department ID", "Claim.extension[url=http://synthea.tools/StructureDefinition/department-id].valueString", "Department ID", "Direct copy", "No direct standard element; use extension"),
+    ("Patient Department ID", "Claim.extension[url=http://synthea.tools/StructureDefinition/patient-department-id].valueString", "Patient Department ID", "Direct copy", "Extension with valueString"),
+    ("Diagnosis1..Diagnosis8", "Claim.diagnosis[]", "Diagnosis Codes", "SNOMED CT codes with sequence 1-8", "diagnosis.diagnosisCodeableConcept.coding[0].system=http://snomed.info/sct"),
+    ("Referring Provider ID", "Claim.referral", "Referring Provider", "ServiceRequest/{id}", "Omit by default; only if ServiceRequest available"),
+    ("Appointment ID", "Claim.item[0].encounter[0]", "Encounter Reference", "Encounter/{Appointment ID}", "R4 representation"),
+    ("Current Illness Date", "Claim.event[]", "Illness Onset Event", "event.type code=onset, event.whenDateTime=date", "Local system http://synthea.tools/CodeSystem/claim-event"),
+    ("Service Date", "Claim.billablePeriod", "Service Period", "start=end=service date", ""),
+    ("Supervising Provider ID", "Claim.careTeam[]", "Supervising Provider", "provider=Practitioner/{Supervising Provider ID}", "sequence=1, role.text=supervising"),
+    ("Status1/Status2/StatusP", "Claim.note[].text", "Adjudication Statuses", "Preserve as note for traceability", "Do not map to Claim.status; belongs in ClaimResponse"),
+    ("Outstanding1/2/P", "Claim.note[].text", "Outstanding Amounts", "Preserve as note for traceability", "Adjudication semantics belong in ClaimResponse"),
+    ("LastBilledDate1/2/P", "Claim.event[]", "Billing Events", "event.type codes bill-primary/bill-secondary/bill-patient", "event.whenDateTime set to respective date"),
+    ("HealthcareClaimTypeID1/2", "Claim.type and Claim.subType", "Claim Type", "1→professional, 2→institutional", "system=http://terminology.hl7.org/CodeSystem/claim-type"),
+]
+```
 
 Data typing and formatting
 - Dates are emitted in ISO 8601 (YYYY-MM-DD or full datetime). This library normalizes via helpers.
@@ -49,5 +38,3 @@ Data typing and formatting
 
 Notes
 - This spec intentionally scopes to a self-contained Claim resource using R4 elements. Any adjudication, amounts due, or final outcome should be produced as `ClaimResponse` using other CSV sources (e.g., `claims_transactions.csv`).
-
-

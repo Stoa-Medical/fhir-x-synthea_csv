@@ -13,8 +13,8 @@ wheels/
 .specstory/.what-is-this.md
 
 # Test data files
-tests/data/csv/*.csv
-tests/data/fhir/*.json
+tests/data/synthea_csv/*
+tests/data/fhir/*
 
 # Personal
 .specstory/
@@ -63,3 +63,6 @@ venv/
 .mypy_cache/
 .ruff_cache/
 # END roobert
+
+.pithy/
+.claude*

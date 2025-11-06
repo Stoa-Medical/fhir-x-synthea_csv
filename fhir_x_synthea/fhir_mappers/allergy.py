@@ -4,6 +4,9 @@ Mapping function for converting Synthea allergies.csv rows to FHIR AllergyIntole
 
 from typing import Any
 
+from fhir.resources.allergyintolerance import AllergyIntolerance
+from synthea_pydantic import Allergy
+
 from ..fhir_lib import (
     create_clinical_status_coding,
     create_reference,
@@ -12,7 +15,7 @@ from ..fhir_lib import (
 )
 
 
-def map_allergy(csv_row: dict[str, Any]) -> dict[str, Any]:
+def map_allergy(allergy: Allergy) -> AllergyIntolerance:
     """
     Map a Synthea allergies.csv row to a FHIR R4 AllergyIntolerance resource.
 
@@ -22,9 +25,9 @@ def map_allergy(csv_row: dict[str, Any]) -> dict[str, Any]:
                 SEVERITY1, REACTION2, DESCRIPTION2, SEVERITY2
 
     Returns:
-        Dictionary representing a FHIR AllergyIntolerance resource
+        AllergyIntolerance resource
     """
-
+    csv_row = allergy.model_dump()
     # Extract and process fields
     start = csv_row.get("START", "").strip() if csv_row.get("START") else ""
     stop = csv_row.get("STOP", "").strip() if csv_row.get("STOP") else ""
@@ -179,4 +182,4 @@ def map_allergy(csv_row: dict[str, Any]) -> dict[str, Any]:
     if reactions:
         resource["reaction"] = reactions
 
-    return resource
+    return AllergyIntolerance(**resource)
